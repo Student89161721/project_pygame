@@ -1,5 +1,6 @@
 import pygame
 
+
 # Класс вынесен в отделный файл, тк используется везде
 # Кнопки пока что рисуются, потом сделаем картинками
 class Button(pygame.sprite.Sprite):
@@ -41,3 +42,9 @@ class Button(pygame.sprite.Sprite):
         x = self.rect.width // 2 - text.get_width() // 2
         y = self.rect.height // 2 - text.get_height() // 2
         self.image.blit(text, (x, y))
+
+
+def draw_text(screen, text, coords, size=20, text_color=(0, 0, 0)):
+    font = pygame.font.Font(None, size)
+    text = font.render(text, True, text_color)
+    screen.blit(text, coords)

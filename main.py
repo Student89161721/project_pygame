@@ -7,8 +7,6 @@ from PGWigets import *
 
 WIDTH, HEIGHT = 400, 400
 
-horizontal_borders = pygame.sprite.Group()
-vertical_borders = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 
 
