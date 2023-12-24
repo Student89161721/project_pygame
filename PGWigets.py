@@ -44,7 +44,12 @@ class Button(pygame.sprite.Sprite):
         self.image.blit(text, (x, y))
 
 
-def draw_text(screen, text, coords, size=20, text_color=(0, 0, 0)):
-    font = pygame.font.Font(None, size)
-    text = font.render(text, True, text_color)
-    screen.blit(text, coords)
+class Label(pygame.sprite.Sprite):
+    def __init__(self, group, text, coords, size=20, text_color=(0, 0, 0)):
+        super().__init__(group)
+        font = pygame.font.Font(None, size)
+        text = font.render(text, True, text_color)
+        self.image = pygame.Surface((text.get_width(), text.get_height()), pygame.SRCALPHA, 32)
+        self.rect = pygame.Rect(*coords, text.get_width(), text.get_height())
+        self.image.blit(text, (0, 0))
+
