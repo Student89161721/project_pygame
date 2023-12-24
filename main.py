@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import QApplication
 
 from reg_login import RegistrationWidget, LoginWidget
 from fool import FoolMenu
+from gallows import GallowsMenu
+from solitaire import SolitaireMenu
 from PGWigets import *
 
 WIDTH, HEIGHT = 400, 400
@@ -32,6 +34,20 @@ def fool_menu():
     app.exec()
 
 
+def gallows_menu():
+    app = QApplication(sys.argv)
+    gallows_menu = GallowsMenu()
+    gallows_menu.show()
+    app.exec()
+
+
+def solitaire_menu():
+    app = QApplication(sys.argv)
+    solitaire_menu = SolitaireMenu()
+    solitaire_menu.show()
+    app.exec()
+
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -41,9 +57,9 @@ btn_reg = Button(all_sprites, register, (170, 10, 150, 25), 'Зарегистр�
                  shadow_color=(235, 220, 130), line_color=(225, 200, 120))
 btn_fool = Button(all_sprites, fool_menu, (10, 270, 170, 30), 'Дурак', body_color=(255, 240, 150),
                   shadow_color=(235, 220, 130), line_color=(225, 200, 120))
-btn_gallows = Button(all_sprites, None, (10, 310, 170, 30), 'Виселица', body_color=(255, 240, 150),
+btn_gallows = Button(all_sprites, gallows_menu, (10, 310, 170, 30), 'Виселица', body_color=(255, 240, 150),
                      shadow_color=(235, 220, 130), line_color=(225, 200, 120))
-btn_solitaire = Button(all_sprites, None, (10, 350, 170, 30), 'Пасьянс', body_color=(255, 240, 150),
+btn_solitaire = Button(all_sprites, solitaire_menu, (10, 350, 170, 30), 'Пасьянс', body_color=(255, 240, 150),
                        shadow_color=(235, 220, 130), line_color=(225, 200, 120))
 
 running = True
