@@ -3,10 +3,10 @@ import pygame
 from PyQt6.QtWidgets import QApplication
 
 from reg_login import RegistrationWidget, LoginWidget
+from fool import FoolMenu, fool_run
+from gallows import GallowsMenu, gallows_run
+from solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
-from fool import fool_run
-from gallows import gallows_run
-from solitaire import solitaire_run
 
 WIDTH, HEIGHT = 400, 400
 
@@ -27,15 +27,38 @@ def register():
     app.exec()
 
 
+def fool_menu():
+    app = QApplication(sys.argv)
+    fool_menu = FoolMenu()
+    fool_menu.show()
+    app.exec()
+
+
+def gallows_menu():
+    app = QApplication(sys.argv)
+    gallows_menu = GallowsMenu()
+    gallows_menu.show()
+    app.exec()
+
+
+def solitaire_menu():
+    app = QApplication(sys.argv)
+    solitaire_menu = SolitaireMenu()
+    solitaire_menu.show()
+    app.exec()
+
 def fool():
+    fool_menu()
     fool_run(screen)
 
 
 def gallows():
+    gallows_menu()
     gallows_run(screen)
 
 
 def solitaire():
+    solitaire_menu()
     solitaire_run(screen)
 
 

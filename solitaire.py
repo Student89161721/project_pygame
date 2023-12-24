@@ -1,4 +1,16 @@
+from PyQt6.QtWidgets import QMainWindow, QApplication, QLineEdit
+from solitaire_ui import Ui_Form
 from PGWigets import *
+
+
+
+class SolitaireMenu(QMainWindow, Ui_Form):
+    def __init__(self):
+        super().__init__()
+
+        self.setupUi(self)
+        self.setWindowTitle('Настройки косынки')
+        self.play_pushButton.clicked.connect(self.close)
 
 
 def solitaire_run(screen):
