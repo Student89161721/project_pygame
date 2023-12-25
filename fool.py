@@ -26,11 +26,17 @@ def fool_run(screen):
     btn_back = Button(all_sprites, back, (10, 365, 150, 25), 'В меню', body_color=(220, 255, 180),
                       shadow_color=(200, 235, 160), line_color=(180, 200, 140))
     label = Label(all_sprites, 'Тут будет дурак', (10, 10), 30, 50)
+    le = LineEdit(all_sprites, back, (10, 100, 150, 25), body_color=(220, 220, 220), line_color=(150, 150, 150),)
+
+    fps = 60
+    clock = pygame.time.Clock()
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
             all_sprites.update(event)
+        le.draw()
         screen.fill((255, 255, 255))
         all_sprites.draw(screen)
+        clock.tick(fps)
         pygame.display.flip()
