@@ -115,6 +115,6 @@ class Ui_Form(object):
         self.pushButton.setText(_translate("Form", "Играть"))
         self.label_3.setText(_translate("Form", "Тема"))
         self.label_4.setText(_translate("Form", "Сложность"))
-        self.difficulty_comboBox.setItemText(0, _translate("Form", "Легкая (4-5 букв)"))
+        self.difficulty_comboBox.setItemText(0, _translate("Form", "Легкая (3-5 букв)"))
         self.difficulty_comboBox.setItemText(1, _translate("Form", "Нормальная (6-8 букв)"))
         self.difficulty_comboBox.setItemText(2, _translate("Form", "Сложная (9-11 букв)"))

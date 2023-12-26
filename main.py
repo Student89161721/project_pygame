@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QApplication
 
 from reg_login import RegistrationWidget, LoginWidget
 from fool import FoolMenu, fool_run
-from gallows import GallowsMenu, gallows_run
+from gallows import GallowsMenu
 from solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
 
@@ -54,7 +54,6 @@ def fool():
 
 def gallows():
     gallows_menu()
-    gallows_run(screen)
 
 
 def solitaire():
