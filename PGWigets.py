@@ -1,4 +1,6 @@
 import pygame
+import sys
+import os
 
 KEYBOARD = {pygame.K_q: 'й', pygame.K_w: 'ц', pygame.K_e: 'у', pygame.K_r: 'к', pygame.K_t: 'е', pygame.K_y: 'н',
             pygame.K_u: 'г', pygame.K_i: 'ш', pygame.K_o: 'щ', pygame.K_p: 'з', pygame.K_LEFTBRACKET: 'х',
@@ -126,4 +128,21 @@ class LineEdit(pygame.sprite.Sprite):
         y = self.rect.height // 2 - text.get_height() // 2
         self.text_end = text.get_width()
         self.image.blit(text, (x, y))
+
+
+def load_image(name, colorkey=None):
+    fullname = name
+    # если файл не существует, то выходим
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+    if colorkey is not None:
+        image = image.convert()
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
 

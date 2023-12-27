@@ -1,11 +1,10 @@
 import sys
-import pygame
 from PyQt6.QtWidgets import QApplication
 
 from reg_login import RegistrationWidget, LoginWidget
-from fool import FoolMenu, fool_run
-from gallows import GallowsMenu
-from solitaire import SolitaireMenu, solitaire_run
+from fooldir.fool import FoolMenu, fool_run
+from gallowsdir.gallows import GallowsMenu
+from soldir.solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
 
 WIDTH, HEIGHT = 400, 400
@@ -48,8 +47,11 @@ def solitaire_menu():
     app.exec()
 
 def fool():
+    global screen
     fool_menu()
     fool_run(screen)
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
 
 
 def gallows():

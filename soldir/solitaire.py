@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QMainWindow, QApplication, QLineEdit
-from solitaire_ui import Ui_Form
+from soldir.solitaire_ui import Ui_Form
 from PGWigets import *
 
 

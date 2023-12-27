@@ -1,10 +1,10 @@
 from PyQt6.QtWidgets import QMainWindow, QApplication
-from gallows_ui import Ui_Form
+from gallowsdir.gallows_ui import Ui_Form
 from PGWigets import *
 from time import time
 import sys
 import random
-from gallows_words import *
+from gallowsdir.gallows_words import *
 import pygame
 
 
