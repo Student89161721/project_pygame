@@ -76,6 +76,9 @@ class Gallows:
         cursor = pygame.Rect(rect.topright, (3, rect.height))
         self.word = self.generate_word()
         running = True
+        # выход из игры можно сделать путём назначения на кнопку в меню функции, приравнивающей  running  к false
+        # Лучше тогда на крестик поставить краш проги, а не в конец цикла
+        # lineedit надо запихнуть в класс в PGWigets
         while running:
             screen.fill(pygame.Color('white'))
             for event in pygame.event.get():
@@ -126,7 +129,7 @@ class Gallows:
             self.word = random.choice(list(filter(lambda x: 9 <= len(x) <= 11, d.get(self.theme))))
         return self.word
 
-
+# это не нужно
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     Gallows_menu = GallowsMenu()

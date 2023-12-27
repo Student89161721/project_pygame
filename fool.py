@@ -4,7 +4,6 @@ from PyQt6 import QtCore
 from PGWigets import *
 
 
-
 class FoolMenu(QMainWindow, Ui_Form):
     def __init__(self):
         super().__init__()
