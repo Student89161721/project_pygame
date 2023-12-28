@@ -1,17 +1,18 @@
 import pygame.transform
-from PyQt6.QtWidgets import QMainWindow, QApplication, QLineEdit
+from PyQt6.QtWidgets import QMainWindow
 from fooldir.fool_menu_ui import Ui_Form
-from PyQt6 import QtCore
 from PGWigets import *
-from random import randint
+from random import randint, shuffle
 
 CARD_SIZE = (85, 125)
 HAND_COORDS = (100, 330)
-BOT_COORDS = (100, 10)
-PACK_COORDS = (10, 150)
+BOT_COORDS = (100, 5)
+PACK_COORDS = (0, 160)
 HAND_SIZE = 250
 HAND_STEP = 50
 WIDTH, HEIGHT = 500, 500
+FIELD_RECT = (100, 130, 300, 200)
+FIELD_POSES = [(130, 150), (210, 150), (290, 150), (130, 250), (210, 250), (290, 250)]
 
 
 class FoolMenu(QMainWindow, Ui_Form):
@@ -28,9 +29,10 @@ class Card(pygame.sprite.Sprite):
         super().__init__(group)
         self.cross = False
         self.click = False
+        self.in_field = False
         self.mouse_pos = (0, 0)
         self.state = ''
-        self.max_size, self.min_size = CARD_SIZE, (CARD_SIZE[0] // 2, CARD_SIZE[1] // 2)
+        self.size_1, self.size_2 = CARD_SIZE, (CARD_SIZE[0] * 0.8, CARD_SIZE[1] * 0.8)
         self.lear, self.sen = lear, sen # масть от 1 до 4, старшинство от 1 до 13
         self.other_image = cards[4]
         self.image = cards[lear - 1][sen - 1]
@@ -50,6 +52,12 @@ class Card(pygame.sprite.Sprite):
                     self.click = True
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    if (self.rect.x + self.rect.width >= event.pos[0] >=
+                        self.rect.x and self.rect.y + self.rect.height >=
+                        event.pos[1] >= self.rect.y) and self.click and \
+                            (FIELD_RECT[0] <= self.rect.x <= FIELD_RECT[0]
+                             + FIELD_RECT[2] and FIELD_RECT[1] <= self.rect.y <= FIELD_RECT[1] + FIELD_RECT[3]):
+                        self.in_field = True
                     self.click = False
 
     def draw(self, coords):
@@ -69,15 +77,16 @@ class Card(pygame.sprite.Sprite):
             self.flip()
         if self.state == 'bot' or state == 'bot':
             self.flip()
-        if self.state == 'field' or self.state == 'field':
-            self.max_size, self.min_size = self.min_size, self.max_size
-            self.image = pygame.transform.scale(self.image, self.max_size)
+        if self.state == 'field' or state == 'field':
+            self.size_1, self.size_2 = self.size_2, self.size_1
+            self.image = pygame.transform.scale(self.image, self.size_1)
         self.state = state
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, field):
         self.hand = []
+        self.field = field
 
     def draw(self):
         step = HAND_STEP
@@ -97,6 +106,10 @@ class Player:
                     self.hand[i].draw((coords[0] + (step * i), coords[1] - 30))
             else:
                 self.hand[i].draw((coords[0] + (step * i), coords[1]))
+        for elem in self.hand:
+            if elem.in_field:
+                self.field.add(elem)
+                del self.hand[self.hand.index(elem)]
 
     def add_to_hand(self, *cards):
         for elem in cards:
@@ -133,13 +146,31 @@ class Pack:
     def __init__(self, pack):
         self.pack = pack
         self.pack[0].set_state('pack_end')
-        self.pack[-1].set_state('pack')
+        for elem in pack[1:]:
+            elem.set_state('pack')
 
     def draw(self):
         if self.pack:
-            self.pack[0].draw((PACK_COORDS[0] * 1.5, PACK_COORDS[1] * 1.2))
-            if len(self.pack) > 1:
-                self.pack[-1].draw(PACK_COORDS)
+            for i in range(len(self.pack)):
+                if i:
+                    self.pack[i].draw(PACK_COORDS)
+                else:
+                    self.pack[i].draw((PACK_COORDS[0] * 1.5, PACK_COORDS[1] * 1.2))
+
+
+
+class Field:
+    def __init__(self):
+        self.cards = []
+
+    def draw(self):
+        for i in range(len(self.cards)):
+            self.cards[i].draw(FIELD_POSES[i])
+
+    def add(self, card):
+        card.set_state('field')
+        self.cards.append(card)
+
 
 
 def fool_run(screen):
@@ -153,20 +184,22 @@ def fool_run(screen):
                                                                          *CARD_SIZE)) for i in range(13)] for j in range(4)]
     shirt = load_image('fooldir/shirt.png', -1).subsurface(pygame.Rect(0, 0, *CARD_SIZE))
     cards.append(shirt)
+
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     all_sprites = pygame.sprite.Group()
-
     btn_back = Button(all_sprites, back, (10, 465, 150, 25), 'В меню', body_color=(220, 255, 180),
                       shadow_color=(200, 235, 160), line_color=(180, 200, 140))
-    player = Player()
-    for i in range(1, 7):
-        card = Card(all_sprites, cards, i, randint(1, 4))
-        player.add_to_hand(card)
+    cards_array = [(i % 13 + 1, i // 13 + 1) for i in range(52)]
+    shuffle(cards_array)
+    field = Field()
+    player = Player(field)
     bot = Bot()
-    for i in range(1, 7):
-        card = Card(all_sprites, cards, i, randint(1, 4))
+    for i in range(6):
+        card = Card(all_sprites, cards, *cards_array[i * 2])
+        player.add_to_hand(card)
+        card = Card(all_sprites, cards, *cards_array[i * 2 + 1])
         bot.add_to_hand(card)
-    pack = Pack([Card(all_sprites, cards, 1, 2), Card(all_sprites, cards, 2, 2)])
+    pack = Pack([Card(all_sprites, cards, *elem) for elem in cards_array])
     fps = 60
     clock = pygame.time.Clock()
     while run:
@@ -179,5 +212,6 @@ def fool_run(screen):
         player.draw()
         pack.draw()
         bot.draw()
+        field.draw()
         clock.tick(fps)
         pygame.display.flip()
