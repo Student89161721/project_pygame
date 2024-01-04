@@ -28,6 +28,7 @@ class FoolMenu(QMainWindow, Ui_Form):
 class Card(pygame.sprite.Sprite):
     def __init__(self, group, cards, sen, lear):
         super().__init__(group)
+        self.group = group
         self.cross = False
         self.click = False
         self.in_field = False
@@ -98,7 +99,7 @@ class Card(pygame.sprite.Sprite):
             self.image = pygame.transform.scale(self.image, self.size_1)
             self.image = pygame.transform.rotate(self.image, -30)
             self.rect = self.image.get_rect()
-            move_to_front(self)
+            self.group.move_to_front(self)
         self.state = state
 
 
@@ -168,22 +169,47 @@ class Bot:
             cards = self.field.cards
             for i in range(len(cards)):
                 if cards[i][0] and not cards[i][1]:
-                    for e in self.hand:
+                    for e in sorted(self.hand, key=lambda x: x.sen):
                         if e.lear == cards[i][0].lear and e.sen > cards[i][0].sen:
                             self.field.cover(e, i)
                             del self.hand[self.hand.index(e)]
                             break
+                    else:
+                        if cards[i][0].lear != self.field.trump:
+                            for e in sorted(self.hand, key=lambda x: x.sen):
+                                if e.lear == self.field.trump:
+                                    self.field.cover(e, i)
+                                    del self.hand[self.hand.index(e)]
+                                    break
+                            else:
+                                self.field.put_cards()
+                        else:
+                            self.field.put_cards()
+                    for elem in self.hand:
+                        elem.group.move_to_front(elem)
+        else:
+            for i in range(len(self.hand)):
+                if self.field.add(self.hand[i]):
+                    del self.hand[i]
+                    break
+            else:
+                self.field.change_move()
 
     def add_to_hand(self, *cards):
         for elem in cards:
             elem.set_state('bot')
         self.hand.extend(cards)
+        self.hand = sorted(self.hand, key=lambda x: x.sen)
+        for elem in self.hand:
+            elem.group.move_to_front(elem)
 
 
 class Pack:
-    def __init__(self, pack):
+    def __init__(self, field, pack):
         self.pack = pack
         self.pack[0].set_state('pack_end')
+        field.trump = self.pack[0].lear
+
         for elem in pack[1:]:
             elem.set_state('pack')
 
@@ -195,11 +221,17 @@ class Pack:
                 else:
                     self.pack[i].draw((PACK_COORDS[0] * 1.5, PACK_COORDS[1] * 1.2))
 
+    def put(self, number):
+        return [self.pack.pop() for i in range(number) if len(self.pack) > i]
+
 
 class Field:
     def __init__(self):
         self.cards = [[None, None] for _ in range(6)]
         self.cards_counter = 0
+        self.trump = None
+        self.move = False
+        self.put = False
 
     def draw(self):
         for i in range(len(self.cards)):
@@ -219,12 +251,32 @@ class Field:
             return False
 
     def cover(self, card, pos):
-        if self.cards[pos][0] and card.lear == self.cards[pos][0].lear and card.sen > self.cards[pos][0].sen:
+        if not self.cards[pos][0] is None and (card.lear == self.cards[pos][0].lear and card.sen >
+                                               self.cards[pos][0].sen or card.lear != self.cards[pos][0].lear
+                                               and card.lear == self.trump):
             card.set_state('field_up')
             self.cards[pos][1] = card
             return True
         else:
             return False
+
+    def change_move(self):
+        self.cards_counter = 0
+        if any([not elem[0] is None and not elem[1] is None for elem in self.cards]):
+            self.move = True
+
+    def put_cards(self):
+        self.cards_counter = 0
+        if any([not elem[0] is None and elem[1] is None for elem in self.cards]):
+            self.put = True
+
+    def clear(self):
+        for elem in self.cards:
+            if not elem[0] is None:
+                elem[0].kill()
+            if not elem[1] is None:
+                elem[1].kill()
+        self.cards = [[None, None] for _ in range(6)]
 
 
 def fool_run(screen):
@@ -232,37 +284,33 @@ def fool_run(screen):
         global run
         run = False
 
-    def change_move():
-        global move
-        move = True
-
     global run
-    global move
     run = True
-    move = False
     cards = [[load_image('fooldir/cards.png', -1).subsurface(pygame.Rect(5 + CARD_SIZE[0] * i, CARD_SIZE[1] * j,
                                                                          *CARD_SIZE)) for i in range(13)] for j in range(4)]
     shirt = load_image('fooldir/shirt.png', -1).subsurface(pygame.Rect(0, 0, *CARD_SIZE))
     cards.append(shirt)
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    all_sprites = pygame.sprite.Group()
-    btn_back = Button(all_sprites, back, (10, 465, 150, 25), 'В меню', body_color=(220, 255, 180),
-                      shadow_color=(200, 235, 160), line_color=(180, 200, 140))
-
-    btn_bito = Button(all_sprites, change_move, (330, 465, 150, 25), 'Бито', body_color=(255, 255, 255),
-                      shadow_color=(230, 230, 230), line_color=(100, 100, 100))
+    all_sprites = pygame.sprite.LayeredUpdates()
     cards_array = [(i % 13 + 1, i // 13 + 1) for i in range(52)]
     shuffle(cards_array)
     field = Field()
     player = Player(field)
     bot = Bot(field)
     for i in range(6):
-        card = Card(all_sprites, cards, *cards_array[i * 2])
+        card = Card(all_sprites, cards, *cards_array.pop(i * 2))
+
         player.add_to_hand(card)
-        card = Card(all_sprites, cards, *cards_array[i * 2 + 1])
+        card = Card(all_sprites, cards, *cards_array.pop(i * 2 + 1))
         bot.add_to_hand(card)
-    pack = Pack([Card(all_sprites, cards, *elem) for elem in cards_array])
+    pack = Pack(field, [Card(all_sprites, cards, *elem) for elem in cards_array])
+
+    btn_back = Button(all_sprites, back, (10, 465, 150, 25), 'В меню', body_color=(220, 255, 180),
+                      shadow_color=(200, 235, 160), line_color=(180, 200, 140))
+
+    btn_bito = Button(all_sprites, field.change_move, (330, 465, 150, 25), 'Бито', body_color=(255, 255, 255),
+                      shadow_color=(230, 230, 230), line_color=(100, 100, 100))
     fps = 60
     clock = pygame.time.Clock()
     while run:
@@ -270,8 +318,32 @@ def fool_run(screen):
             if event.type == pygame.QUIT:
                 pygame.quit()
             all_sprites.update(event)
-        if move:
+        if field.move:
+            field.move = False
+            field.clear()
             player.state, bot.state = bot.state, player.state
+            bot.add_to_hand(*pack.put(6 - len(bot.hand)))
+            player.add_to_hand(*pack.put(6 - len(bot.hand)))
+            if player.state == 'atk':
+                btn_bito.text = 'бито'
+                btn_bito.func = field.change_move
+            else:
+                btn_bito.text = 'взять'
+                btn_bito.func = field.put_cards
+        elif field.put:
+            field.put = False
+            cards = []
+            for i in range(len(field.cards)):
+                for j in range(2):
+                    if not field.cards[i][j] is None:
+                        cards.append(field.cards[i][j])
+                        field.cards[i][j] = None
+            if player.state == 'atk':
+                player.add_to_hand(*pack.put(6 - len(bot.hand)))
+                bot.add_to_hand(*cards)
+            else:
+                bot.add_to_hand(*pack.put(6 - len(bot.hand)))
+                player.add_to_hand(*cards)
         screen.fill((100, 150, 200))
         all_sprites.draw(screen)
         player.draw()
