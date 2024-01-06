@@ -1,5 +1,5 @@
 import pygame.transform
-from PyQt6.QtWidgets import QMainWindow
+from PyQt6.QtWidgets import QMainWindow, QApplication
 from fooldir.fool_menu_ui import Ui_Form
 from PGWigets import *
 from random import randint, shuffle
@@ -11,7 +11,7 @@ PACK_COORDS = (0, 160)
 HAND_SIZE = 250
 HAND_STEP = 50
 WIDTH, HEIGHT = 500, 500
-FIELD_RECT = (100, 130, 300, 200)
+FIELD_RECT = (100, 100, 300, 200)
 FIELD_POSES = [(130, 150), (210, 150), (290, 150), (130, 250), (210, 250), (290, 250)]
 FIELD_POSES_SIZE = (80, 100)
 
@@ -23,6 +23,13 @@ class FoolMenu(QMainWindow, Ui_Form):
         self.setupUi(self)
         self.setWindowTitle('Настройки дурака')
         self.pushButton.clicked.connect(self.close)
+
+
+def fool_menu():
+    app = QApplication(sys.argv)
+    fool_menu = FoolMenu()
+    fool_menu.show()
+    app.exec()
 
 
 class Card(pygame.sprite.Sprite):
@@ -40,6 +47,8 @@ class Card(pygame.sprite.Sprite):
         self.other_image = cards[4]
         self.image = cards[lear - 1][sen - 1]
         self.rect = pygame.Rect(0, 0, *CARD_SIZE)
+        if sen == 1:
+            self.sen = 14
 
     def update(self, event):
         if self.state == 'player':
@@ -74,6 +83,7 @@ class Card(pygame.sprite.Sprite):
 
     def flip(self):
         self.image, self.other_image = self.other_image, self.image
+        self.rect = self.image.get_rect()
 
     def set_state(self, state):
         if self.state == 'pack_end':
@@ -140,6 +150,9 @@ class Player:
         for elem in cards:
             elem.set_state('player')
         self.hand.extend(cards)
+        self.hand = sorted(self.hand, key=lambda x: (x.lear, x.sen))
+        for elem in self.hand:
+            elem.group.move_to_front(elem)
 
 
 class Bot:
@@ -251,9 +264,10 @@ class Field:
             return False
 
     def cover(self, card, pos):
-        if not self.cards[pos][0] is None and (card.lear == self.cards[pos][0].lear and card.sen >
-                                               self.cards[pos][0].sen or card.lear != self.cards[pos][0].lear
-                                               and card.lear == self.trump):
+        if pos < 6 and not self.cards[pos][0] is None and (card.lear == self.cards[pos][0].lear and
+                                                           card.sen > self.cards[pos][0].sen or
+                                                           card.lear != self.cards[pos][0].lear and
+                                                           card.lear == self.trump):
             card.set_state('field_up')
             self.cards[pos][1] = card
             return True
@@ -262,7 +276,7 @@ class Field:
 
     def change_move(self):
         self.cards_counter = 0
-        if any([not elem[0] is None and not elem[1] is None for elem in self.cards]):
+        if all([(not elem[0] is None and not elem[1] is None) or elem[0] == elem[1] for elem in self.cards]):
             self.move = True
 
     def put_cards(self):
@@ -286,6 +300,9 @@ def fool_run(screen):
 
     global run
     run = True
+
+    fool_menu()
+
     cards = [[load_image('fooldir/cards.png', -1).subsurface(pygame.Rect(5 + CARD_SIZE[0] * i, CARD_SIZE[1] * j,
                                                                          *CARD_SIZE)) for i in range(13)] for j in range(4)]
     shirt = load_image('fooldir/shirt.png', -1).subsurface(pygame.Rect(0, 0, *CARD_SIZE))
@@ -323,13 +340,14 @@ def fool_run(screen):
             field.clear()
             player.state, bot.state = bot.state, player.state
             bot.add_to_hand(*pack.put(6 - len(bot.hand)))
-            player.add_to_hand(*pack.put(6 - len(bot.hand)))
+            player.add_to_hand(*pack.put(6 - len(player.hand)))
             if player.state == 'atk':
                 btn_bito.text = 'бито'
                 btn_bito.func = field.change_move
             else:
                 btn_bito.text = 'взять'
                 btn_bito.func = field.put_cards
+            all_sprites.update(event)
         elif field.put:
             field.put = False
             cards = []
@@ -344,6 +362,12 @@ def fool_run(screen):
             else:
                 bot.add_to_hand(*pack.put(6 - len(bot.hand)))
                 player.add_to_hand(*cards)
+            all_sprites.update(event)
+        if len(pack.pack) == 0:
+            if len(player.hand) == 0:
+                print('победил игрок')
+            elif len(bot.hand) == 0:
+                print('победил бот')
         screen.fill((100, 150, 200))
         all_sprites.draw(screen)
         player.draw()

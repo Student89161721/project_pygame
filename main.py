@@ -26,13 +26,6 @@ def register():
     app.exec()
 
 
-def fool_menu():
-    app = QApplication(sys.argv)
-    fool_menu = FoolMenu()
-    fool_menu.show()
-    app.exec()
-
-
 def gallows_menu():
     app = QApplication(sys.argv)
     gallows_menu = GallowsMenu()
@@ -46,9 +39,9 @@ def solitaire_menu():
     solitaire_menu.show()
     app.exec()
 
+
 def fool():
     global screen
-    fool_menu()
     fool_run(screen)
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
