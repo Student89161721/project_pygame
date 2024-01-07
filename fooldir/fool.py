@@ -4,13 +4,14 @@ from fooldir.fool_menu_ui import Ui_Form
 from PGWigets import *
 from random import randint, shuffle
 
+global cards_number
 CARD_SIZE = (85, 125)
-HAND_COORDS = (100, 330)
+HAND_COORDS = (100, 380)
 BOT_COORDS = (100, 5)
 PACK_COORDS = (0, 160)
 HAND_SIZE = 250
 HAND_STEP = 50
-WIDTH, HEIGHT = 500, 500
+WIDTH, HEIGHT = 500, 550
 FIELD_RECT = (100, 100, 300, 200)
 FIELD_POSES = [(130, 150), (210, 150), (290, 150), (130, 250), (210, 250), (290, 250)]
 FIELD_POSES_SIZE = (80, 100)
@@ -22,7 +23,12 @@ class FoolMenu(QMainWindow, Ui_Form):
 
         self.setupUi(self)
         self.setWindowTitle('Настройки дурака')
-        self.pushButton.clicked.connect(self.close)
+        self.pushButton.clicked.connect(self.ev)
+
+    def ev(self):
+        global cards_number
+        cards_number = int(self.count_cards_comboBox.currentText())
+        self.close()
 
 
 def fool_menu():
@@ -101,8 +107,8 @@ class Card(pygame.sprite.Sprite):
             self.image = pygame.transform.scale(self.image, self.size_1)
         if self.state == 'field_up':
             self.size_1, self.size_2 = self.size_2, self.size_1
+            self.image = pygame.transform.rotate(self.image, 0)
             self.image = pygame.transform.scale(self.image, self.size_1)
-            self.image = pygame.transform.rotate(self.image, 30)
             self.rect = self.image.get_rect()
         if state == 'field_up':
             self.size_1, self.size_2 = self.size_2, self.size_1
@@ -275,7 +281,6 @@ class Field:
             return False
 
     def change_move(self):
-        self.cards_counter = 0
         if all([(not elem[0] is None and not elem[1] is None) or elem[0] == elem[1] for elem in self.cards]):
             self.move = True
 
@@ -285,12 +290,43 @@ class Field:
             self.put = True
 
     def clear(self):
+        self.cards_counter = 0
         for elem in self.cards:
             if not elem[0] is None:
                 elem[0].kill()
             if not elem[1] is None:
                 elem[1].kill()
         self.cards = [[None, None] for _ in range(6)]
+
+
+def end_display(win, screen):
+    global x
+    x = False
+    r = True
+
+    def new_game():
+        global x
+        x = True
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen.fill((255, 255, 255))
+    all_sprites = pygame.sprite.LayeredUpdates()
+    btn_new = Button(all_sprites, new_game, (100, 250, 300, 40), 'Новая игра', body_color=(170, 220, 255),
+                     shadow_color=(150, 200, 235), line_color=(130, 170, 215))
+    if win:
+        label_1 = Label(all_sprites, 'Вы выйграли', (100, 120), 50, 50)
+    else:
+        label_1 = Label(all_sprites, 'Вы проиграли', (100, 120), 50, 50)
+    while r:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            all_sprites.update(event)
+        if x:
+            return True
+        screen.fill((255, 255, 255))
+        all_sprites.draw(screen)
+        pygame.display.flip()
+    pygame.quit()
 
 
 def fool_run(screen):
@@ -310,23 +346,22 @@ def fool_run(screen):
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     all_sprites = pygame.sprite.LayeredUpdates()
-    cards_array = [(i % 13 + 1, i // 13 + 1) for i in range(52)]
+    cards_array = [(i % 13 + 1, i // 13 + 1) for i in range(52) if i % 13 == 0 or i % 13 > 13 - cards_number // 4]
     shuffle(cards_array)
     field = Field()
     player = Player(field)
     bot = Bot(field)
     for i in range(6):
         card = Card(all_sprites, cards, *cards_array.pop(i * 2))
-
         player.add_to_hand(card)
         card = Card(all_sprites, cards, *cards_array.pop(i * 2 + 1))
         bot.add_to_hand(card)
     pack = Pack(field, [Card(all_sprites, cards, *elem) for elem in cards_array])
 
-    btn_back = Button(all_sprites, back, (10, 465, 150, 25), 'В меню', body_color=(220, 255, 180),
+    btn_back = Button(all_sprites, back, (10, 515, 150, 25), 'В меню', body_color=(220, 255, 180),
                       shadow_color=(200, 235, 160), line_color=(180, 200, 140))
 
-    btn_bito = Button(all_sprites, field.change_move, (330, 465, 150, 25), 'Бито', body_color=(255, 255, 255),
+    btn_bito = Button(all_sprites, field.change_move, (330, 515, 150, 25), 'Бито', body_color=(255, 255, 255),
                       shadow_color=(230, 230, 230), line_color=(100, 100, 100))
     fps = 60
     clock = pygame.time.Clock()
@@ -347,7 +382,6 @@ def fool_run(screen):
             else:
                 btn_bito.text = 'взять'
                 btn_bito.func = field.put_cards
-            all_sprites.update(event)
         elif field.put:
             field.put = False
             cards = []
@@ -357,17 +391,16 @@ def fool_run(screen):
                         cards.append(field.cards[i][j])
                         field.cards[i][j] = None
             if player.state == 'atk':
-                player.add_to_hand(*pack.put(6 - len(bot.hand)))
+                player.add_to_hand(*pack.put(6 - len(player.hand)))
                 bot.add_to_hand(*cards)
             else:
                 bot.add_to_hand(*pack.put(6 - len(bot.hand)))
                 player.add_to_hand(*cards)
-            all_sprites.update(event)
         if len(pack.pack) == 0:
             if len(player.hand) == 0:
-                print('победил игрок')
+                return True
             elif len(bot.hand) == 0:
-                print('победил бот')
+                return False
         screen.fill((100, 150, 200))
         all_sprites.draw(screen)
         player.draw()

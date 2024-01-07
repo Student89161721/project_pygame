@@ -2,10 +2,11 @@ import sys
 from PyQt6.QtWidgets import QApplication
 
 from reg_login import RegistrationWidget, LoginWidget
-from fooldir.fool import FoolMenu, fool_run
+from fooldir.fool import FoolMenu, fool_run, end_display
 from gallowsdir.gallows import GallowsMenu
 from soldir.solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
+import pygame
 
 WIDTH, HEIGHT = 400, 400
 
@@ -42,9 +43,11 @@ def solitaire_menu():
 
 def fool():
     global screen
-    fool_run(screen)
+    winner = fool_run(screen)
+    if not winner is None:
+        if not end_display(winner, screen) is None:
+            fool()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
 
 
 def gallows():

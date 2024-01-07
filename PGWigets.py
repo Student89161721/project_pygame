@@ -20,6 +20,8 @@ class Button(pygame.sprite.Sprite):
         self.text = text
         self.cross = False
         self.func = func
+        self.font = pygame.font.Font(None, 20)
+
 
         self.image = pygame.Surface((rect[2], rect[3]), pygame.SRCALPHA, 32)
         pygame.draw.rect(self.image, body_color, (0, 0, rect[2], rect[3]))
@@ -44,8 +46,7 @@ class Button(pygame.sprite.Sprite):
                 self.func()
 
     def draw_text(self):
-        font = pygame.font.Font(None, 20)
-        text = font.render(self.text, True, self.text_color)
+        text = self.font.render(self.text, True, self.text_color)
         x = self.rect.width // 2 - text.get_width() // 2
         y = self.rect.height // 2 - text.get_height() // 2
         self.image.blit(text, (x, y))
