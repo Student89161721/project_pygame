@@ -1,6 +1,8 @@
 import pygame
 import sys
 import os
+from time import time
+
 
 KEYBOARD = {pygame.K_q: 'й', pygame.K_w: 'ц', pygame.K_e: 'у', pygame.K_r: 'к', pygame.K_t: 'е', pygame.K_y: 'н',
             pygame.K_u: 'г', pygame.K_i: 'ш', pygame.K_o: 'щ', pygame.K_p: 'з', pygame.K_LEFTBRACKET: 'х',
@@ -63,72 +65,44 @@ class Label(pygame.sprite.Sprite):
 
 
 class LineEdit(pygame.sprite.Sprite):
-    def __init__(self, group, func, rect, max_leght=1,shadow_color=(225, 225, 120), body_color=(255, 255, 150),
-                 line_color=(0, 0, 0), text_color=(0, 0, 0)):
+    def __init__(self, group, word, topleft, size, max_length, line_color=(0, 0, 0), text_color=(0, 0, 0)):
         super().__init__(group)
-        self.body_color, self.shadow_color, self.line_color, self.text_color = body_color, shadow_color, line_color,\
-                                                                               text_color
-        self.rect = pygame.Rect(rect)
-        self.max_leght = max_leght
+        self.word, self.topleft, self.size, self.line_color, self.text_color = word, topleft, size, line_color, text_color
+        self.max_length = max_length
         self.text = ''
-        self.text_end = 0
-        self.clicked = False
-        self.cross = False
-        self.line = -1
-        self.func = func
-
-        self.image = pygame.Surface((rect[2], rect[3]), pygame.SRCALPHA, 32)
-        pygame.draw.rect(self.image, body_color, (0, 0, rect[2], rect[3]))
-        pygame.draw.rect(self.image, line_color, (0, 0, rect[2], rect[3]), 1)
-        self.draw_text()
+        self.font = pygame.font.SysFont('', size)
+        self.img = self.font.render(self.text, True, text_color)
+        self.rect = self.img.get_rect()
+        self.rect.topleft = topleft
+        self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
+        self.L = []
 
     def update(self, event):
-        if event.type == pygame.MOUSEMOTION:
-            if (self.rect.x + self.rect.width >= event.pos[0] >= self.rect.x and
-                    self.rect.y + self.rect.height >= event.pos[1] >= self.rect.y):
-                self.cross = True
-                self.draw_text()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSPACE:
+                self.text = ''
             else:
-                self.cross = False
-                self.draw_text()
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                if self.cross:
-                    self.clicked = True
-                else:
-                    self.clicked = False
-        elif event.type == pygame.KEYDOWN:
-            if self.clicked:
-                if len(self.text) < self.max_leght:
-                    if event.key in KEYBOARD:
-                        self.text = self.text + KEYBOARD[event.key]
-                if event.key == pygame.K_BACKSPACE:
-                    self.text = self.text[:-1]
+                if len(self.text) == 0:
+                    if event.unicode in 'йцукенгшщзхъфывапролджэячсмитьбюё':
+                        text = event.unicode
+            if event.key == 13:  # Если нажат enter
+                if self.text:
+                    if self.text in self.word:
+                        print('yes')
+                    else:
+                        if self.text not in self.L:
+                            self.L.append(self.text)
+                            letters = Label(None, f'Данных букв нет в слове: {", ".join(self.L)}',
+                                            (10, 130), 30, (255, 0, 0))
 
-    def draw(self):
-        if self.clicked:
-            self.line += 1
-            if self.line == 100:
-                self.line = 0
-        else:
-            self.line = -1
-        if not self.clicked:
-            pygame.draw.rect(self.image, self.body_color, (0, 0, self.rect[2], self.rect[3]))
-            pygame.draw.rect(self.image, self.line_color, (0, 0, self.rect[2], self.rect[3]), 1)
-        if 0 <= self.line < 50:
-            pygame.draw.line(self.image, self.text_color, (self.text_end + 2, 2), (self.text_end + 2, self.rect[3] - 4))
-        else:
-            pygame.draw.rect(self.image, self.body_color, (0, 0, self.rect[2], self.rect[3]))
-            pygame.draw.rect(self.image, self.line_color, (0, 0, self.rect[2], self.rect[3]), 1)
-        self.draw_text()
+                    self.text = ''
+            self.img = self.font.render(self.text, True, 'black')
+            self.rect.size = self.img.get_size()
+            self.cursor.topleft = self.rect.topright
 
-    def draw_text(self):
-        font = pygame.font.Font(None, 20)
-        text = font.render(self.text, True, self.text_color)
-        x = 2
-        y = self.rect.height // 2 - text.get_height() // 2
-        self.text_end = text.get_width()
-        self.image.blit(text, (x, y))
+
+
+
 
 
 def load_image(name, colorkey=None):
