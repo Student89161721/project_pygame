@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QApplication
 
 from reg_login import RegistrationWidget, LoginWidget
 from fooldir.fool import FoolMenu, fool_run, end_display
-from gallowsdir.gallows import GallowsMenu
+from gallowsdir.gallows import GallowsMenu, gallows_menu, gallows_run
 from soldir.solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
 import pygame
@@ -27,13 +27,6 @@ def register():
     app.exec()
 
 
-def gallows_menu():
-    app = QApplication(sys.argv)
-    gallows_menu = GallowsMenu()
-    gallows_menu.show()
-    app.exec()
-
-
 def solitaire_menu():
     app = QApplication(sys.argv)
     solitaire_menu = SolitaireMenu()
@@ -51,7 +44,9 @@ def fool():
 
 
 def gallows():
-    gallows_menu()
+    global screen
+    gallows_run(screen)
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 
 def solitaire():
@@ -87,3 +82,4 @@ while running:
     all_sprites.draw(screen)
     pygame.display.flip()
 pygame.quit()
+

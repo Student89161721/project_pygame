@@ -3,7 +3,6 @@ from soldir.solitaire_ui import Ui_Form
 from PGWigets import *
 
 
-
 class SolitaireMenu(QMainWindow, Ui_Form):
     def __init__(self):
         super().__init__()
