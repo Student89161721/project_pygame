@@ -1,8 +1,7 @@
-import sys
 from PyQt6.QtWidgets import QApplication
 
 from reg_login import RegistrationWidget, LoginWidget
-from fooldir.fool import FoolMenu, fool_run, end_display
+from fooldir.fool import fool_run, end_display
 from gallowsdir.gallows import gallows_run
 from soldir.solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
@@ -46,6 +45,7 @@ def fool():
 def gallows():
     global screen
     gallows_run(screen)
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 
 

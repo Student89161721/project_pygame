@@ -16,6 +16,7 @@ class Button(pygame.sprite.Sprite):
     def __init__(self, group, func, rect, text='', body_color=(255, 255, 150), shadow_color=(225, 225, 120),
                  line_color=(0, 0, 0), text_color=(0, 0, 0)):
         super().__init__(group)
+
         self.body_color, self.shadow_color, self.line_color, self.text_color = body_color, shadow_color, line_color,\
                                                                                text_color
         self.rect = pygame.Rect(rect)
@@ -64,41 +65,24 @@ class Label(pygame.sprite.Sprite):
         self.image.blit(text, (0, 0))
 
 
-class LineEdit(pygame.sprite.Sprite):
-    def __init__(self, group, word, topleft, size, max_length, line_color=(0, 0, 0), text_color=(0, 0, 0)):
-        super().__init__(group)
-        self.word, self.topleft, self.size, self.line_color, self.text_color = word, topleft, size, line_color, text_color
-        self.max_length = max_length
-        self.text = ''
-        self.font = pygame.font.SysFont('', size)
-        self.img = self.font.render(self.text, True, text_color)
-        self.rect = self.img.get_rect()
-        self.rect.topleft = topleft
-        self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
-        self.L = []
-
-    def update(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE:
-                self.text = ''
-            else:
-                if len(self.text) == 0:
-                    if event.unicode in 'йцукенгшщзхъфывапролджэячсмитьбюё':
-                        text = event.unicode
-            if event.key == 13:  # Если нажат enter
-                if self.text:
-                    if self.text in self.word:
-                        print('yes')
-                    else:
-                        if self.text not in self.L:
-                            self.L.append(self.text)
-                            letters = Label(None, f'Данных букв нет в слове: {", ".join(self.L)}',
-                                            (10, 130), 30, (255, 0, 0))
-
-                    self.text = ''
-            self.img = self.font.render(self.text, True, 'black')
-            self.rect.size = self.img.get_size()
-            self.cursor.topleft = self.rect.topright
+# class LineEdit(pygame.sprite.Sprite):
+#     def __init__(self, group, word, topleft, size, max_length, line_color=(0, 0, 0), text_color=(0, 0, 0)):
+#         super().__init__(group)
+#         self.word, self.topleft, self.size, self.line_color, self.text_color = word, topleft, size, line_color, text_color
+#         self.max_length = max_length
+#         print(self.word)
+#         self.text = ''
+#         self.font = pygame.font.SysFont('', size)
+#         self.image = self.font.render(self.text, True, self.text_color)
+#         self.rect = self.image.get_rect()
+#         self.rect.topleft = topleft
+#         self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
+#
+#     def update(self, event):
+#         if event.type == pygame.KEYDOWN:
+#             self.image = self.font.render(self.text, True, self.text_color)
+#             self.rect.size = self.image.get_size()
+#             self.cursor.topleft = self.rect.topright
 
 
 
