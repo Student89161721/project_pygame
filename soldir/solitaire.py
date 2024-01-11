@@ -26,6 +26,7 @@ class Card(pygame.sprite.Sprite):
         self.cross = False
         self.click = False
         self.in_field = False
+        self.can_move = False
         self.field_pos = 0
         self.mouse_pos = (0, 0)
         self.state = ''
@@ -34,6 +35,9 @@ class Card(pygame.sprite.Sprite):
         self.other_image = cards[4]
         self.image = cards[lear - 1][sen - 1]
         self.rect = pygame.Rect(0, 0, *CARD_SIZE)
+
+    def __repr__(self):
+        return f'{self.sen} {self.lear}'
 
     def update(self, event):
         if event.type == pygame.MOUSEMOTION:
@@ -48,7 +52,11 @@ class Card(pygame.sprite.Sprite):
                 self.click = True
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                self.click = False
+                if self.click:
+                    if self.mouse_pos[0] >= FIELD_COORDS[0] and self.mouse_pos[1] >= FIELD_COORDS[1]:
+                        self.field_pos = self.mouse_pos[0] // CARD_SIZE[0]
+                        self.in_field = True
+                    self.click = False
 
     def draw(self, coords):
         self.rect.x, self.rect.y = coords
@@ -64,6 +72,7 @@ class Card(pygame.sprite.Sprite):
 class Field:
     def __init__(self, cards):
         self.cards = [[] for _ in range(7)]
+        self.put = False
         for i in range(7):
             for j in range(i + 1):
                 if cards:
@@ -71,23 +80,58 @@ class Field:
                     self.cards[i][-1].group.move_to_front(self.cards[i][-1])
                     if j != i:
                         self.cards[i][-1].flip()
+                    else:
+                        self.cards[i][-1].can_move = True
         self.home = [[] for _ in range(4)]
 
     def add(self, card, pos):
-        self.cards[pos].append(card)
+        if self.cards[pos]:
+            if self.cards[pos][-1].sen - card.sen == 1 and abs(self.cards[pos][-1].lear - card.lear) > 1:
+                self.cards[pos].append(card)
+                return True
+            else:
+                return False
+        elif card.sen == 13:
+            self.cards[pos].append(card)
+            return True
+        else:
+            return False
+
 
     def draw(self):
+        cross = True
         for i in range(len(self.cards)):
             for j in range(len(self.cards[i])):
-                self.cards[i][j].draw((FIELD_COORDS[0] + (CARD_SIZE[0] * i), FIELD_COORDS[1] + (FIELD_STEP * j)))
-
-    def move(self, card):
-        pass
+                if len(self.cards[i]) > j:
+                    self.cards[i][j].draw((FIELD_COORDS[0] + (CARD_SIZE[0] * i), FIELD_COORDS[1] + (FIELD_STEP * j)))
+                    if len(self.cards[i]) > j:
+                        if self.cards[i][j].cross and cross:
+                            cross = False
+                            if self.cards[i][j].click and self.cards[i][j].can_move:
+                                pos = self.cards[i][j].mouse_pos
+                                self.cards[i][j].draw((pos[0] - (CARD_SIZE[0] // 2), pos[1] - (CARD_SIZE[1] // 2)))
+                                self.cards[i][j].group.move_to_front(self.cards[i][j])
+                            if self.cards[i][j].in_field:
+                                self.cards[i][j].in_field = False
+                                if self.cards[self.cards[i][j].field_pos]:
+                                    card = self.cards[self.cards[i][j].field_pos][-1]
+                                    if card.sen - self.cards[i][j].sen == 1 and abs(card.lear - self.cards[i][j].lear) > 1:
+                                        self.cards[self.cards[i][j].field_pos].append(self.cards[i].pop(j))
+                                        if self.cards[i]:
+                                            self.cards[i][-1].flip()
+                                            self.cards[i][-1].can_move = True
+                                else:
+                                    if self.cards[i][j].sen == 13:
+                                        self.cards[self.cards[i][j].field_pos].append(self.cards[i].pop(j))
+                                        if self.cards[i]:
+                                            self.cards[i][-1].flip()
+                                            self.cards[i][-1].can_move = True
 
 
 class Pack:
-    def __init__(self, cards):
+    def __init__(self, field, cards):
         self.cards = cards
+        self.field = field
         for elem in self.cards:
             elem.flip()
         self.cards_open = []
@@ -103,6 +147,10 @@ class Pack:
                 if elem.click:
                     pos = elem.mouse_pos
                     elem.draw((pos[0] - (CARD_SIZE[0] // 2), pos[1] - (CARD_SIZE[1] // 2)))
+                if elem.in_field:
+                    if self.field.add(elem, elem.field_pos):
+                        del self.cards_open[self.cards_open.index(elem)]
+
 
     def open(self):
         if self.cards:
@@ -133,8 +181,9 @@ def solitaire_run(screen):
     btn_back = Button(all_sprites, back, (10, 565, 150, 25), 'В меню', body_color=(220, 255, 180),
                       shadow_color=(200, 235, 160), line_color=(180, 200, 140))
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pack = Pack([Card(all_sprites, cards, *elem) for elem in cards_array[28:]])
     field = Field([Card(all_sprites, cards, *elem) for elem in cards_array[:28]])
+    pack = Pack(field, [Card(all_sprites, cards, *elem) for elem in cards_array[28:]])
+
     cross = False
     while run:
         for event in pygame.event.get():

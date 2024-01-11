@@ -50,8 +50,10 @@ def gallows():
 
 
 def solitaire():
+    global screen
     solitaire_menu()
     solitaire_run(screen)
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 
 pygame.init()
