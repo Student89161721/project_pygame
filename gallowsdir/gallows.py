@@ -1,9 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QApplication
 from gallowsdir.gallows_ui import Ui_Form
 from PGWigets import *
-import sys
 import random
-from gallowsdir.gallows_words import *
 from math import pi
 import pygame
 
