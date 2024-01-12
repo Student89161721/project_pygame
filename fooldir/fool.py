@@ -313,7 +313,7 @@ def end_display(win, screen):
     btn_new = Button(all_sprites, new_game, (100, 250, 300, 40), 'Новая игра', body_color=(170, 220, 255),
                      shadow_color=(150, 200, 235), line_color=(130, 170, 215))
     if win:
-        label_1 = Label(all_sprites, 'Вы выйграли', (100, 120), 50, 50)
+        label_1 = Label(all_sprites, 'Вы выиграли', (100, 120), 50, 50)
     else:
         label_1 = Label(all_sprites, 'Вы проиграли', (100, 120), 50, 50)
     while r:
