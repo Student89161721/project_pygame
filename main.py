@@ -48,11 +48,13 @@ def gallows():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 
-
 def solitaire():
     global screen
     solitaire_menu()
-    solitaire_run(screen)
+    winner = solitaire_run(screen)
+    if not winner is None:
+        if not end_display(winner, screen) is None:
+            solitaire()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 

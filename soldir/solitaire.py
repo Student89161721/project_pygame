@@ -40,9 +40,6 @@ class Card(pygame.sprite.Sprite):
         self.image = cards[lear - 1][sen - 1]
         self.rect = pygame.Rect(0, 0, *CARD_SIZE)
 
-    def __repr__(self):
-        return f'{self.sen} {self.lear}'
-
     def update(self, event):
         if event.type == pygame.MOUSEMOTION:
             self.mouse_pos = event.pos
@@ -59,7 +56,8 @@ class Card(pygame.sprite.Sprite):
                 if self.click:
                     if self.mouse_pos[0] >= FIELD_COORDS[0] and self.mouse_pos[1] >= FIELD_COORDS[1]:
                         self.field_pos = self.mouse_pos[0] // CARD_SIZE[0]
-                        self.in_field = True
+                        if self.field_pos < 7:
+                            self.in_field = True
                     elif self.mouse_pos[0] >= HOME_COORDS[0] and HOME_COORDS[1] + CARD_SIZE[1] >= \
                             self.mouse_pos[1] >= HOME_COORDS[1]:
                         self.home_pos = (self.mouse_pos[0] - HOME_COORDS[0]) // CARD_SIZE[0]
@@ -81,7 +79,7 @@ class Card(pygame.sprite.Sprite):
 class Field:
     def __init__(self, cards):
         self.cards = [[] for _ in range(7)]
-        self.put = False
+        self.put = None
         for i in range(7):
             for j in range(i + 1):
                 if cards:
@@ -131,43 +129,67 @@ class Field:
     def draw(self):
         cross = True
         for i in range(len(self.cards)):
+            step = FIELD_STEP
+            if len(self.cards[i]) * step > 270:
+                step = 270 // len(self.cards[i])
             for j in range(len(self.cards[i])):
                 if len(self.cards[i]) > j:
-                    self.cards[i][j].draw((FIELD_COORDS[0] + (CARD_SIZE[0] * i), FIELD_COORDS[1] + (FIELD_STEP * j)))
+                    self.cards[i][j].draw((FIELD_COORDS[0] + (CARD_SIZE[0] * i), FIELD_COORDS[1] + (step * j)))
                     if self.cards[i][j].cross and cross:
                         cross = False
-                        if self.cards[i][j].click and self.cards[i][j].can_move:
-                            pos = self.cards[i][j].mouse_pos
-                            self.cards[i][j].draw((pos[0] - (CARD_SIZE[0] // 2), pos[1] - (CARD_SIZE[1] // 2)))
-                            self.cards[i][j].group.move_to_front(self.cards[i][j])
-                        if self.cards[i][j].in_field:
+                        if self.put is None and self.cards[i][j].click and self.cards[i][j].can_move:
+                            self.put = [i, j]
+                        if self.cards[i][j].in_field and self.put:
                             self.cards[i][j].in_field = False
                             if self.cards[self.cards[i][j].field_pos]:
                                 card = self.cards[self.cards[i][j].field_pos][-1]
-                                if card.sen - self.cards[i][j].sen == 1 and (abs(card.lear - self.cards[i][j].lear) > 1
+                                if self.cards[i][j].can_move and card.sen - self.cards[i][j].sen == 1 and (abs(card.lear - self.cards[i][j].lear) > 1
                                                                              or (min(card.lear, self.cards[i][j].lear) == 2 and max(card.lear, self.cards[i][j].lear) == 3)):
-                                    self.cards[self.cards[i][j].field_pos].append(self.cards[i].pop(j))
-                                    if self.cards[i]:
+                                    self.cards[self.cards[i][j].field_pos].extend(self.cards[i][self.put[1]:])
+                                    del self.cards[i][self.put[1]:]
+                                    self.put = None
+                                    if self.cards[i] and not self.cards[i][-1].can_move:
                                         self.cards[i][-1].flip()
                                         self.cards[i][-1].can_move = True
                                     continue
                             else:
                                 if self.cards[i][j].sen == 13:
-                                    self.cards[self.cards[i][j].field_pos].append(self.cards[i].pop(j))
-                                    if self.cards[i]:
+                                    n = self.put[1]
+                                    self.cards[self.cards[i][j].field_pos].extend(self.cards[i][self.put[1]:])
+                                    del self.cards[i][self.put[1]:]
+                                    self.put = None
+                                    if self.cards[i] and not self.cards[i][-1].can_move:
                                         self.cards[i][-1].flip()
                                         self.cards[i][-1].can_move = True
                                     continue
                         if self.cards[i][j].in_home:
                             self.cards[i][j].in_home = False
+                            self.put = None
                             if self.add_to_home(self.cards[i][j], self.cards[i][j].home_pos):
                                 del self.cards[i][j]
-                                if self.cards[i]:
+                                if self.cards[i] and not self.cards[i][-1].can_move:
                                     self.cards[i][-1].flip()
                                     self.cards[i][-1].can_move = True
+        if not self.put is None:
+            if self.cards[self.put[0]][self.put[1]].click:
+                n = self.put[1]
+                step = FIELD_STEP
+                if len(self.cards[self.put[0]]) * step > 300:
+                    step = 300 // len(self.cards[self.put[0]])
+                for i in range(len(self.cards[self.put[0]]) - n):
+                    card = self.cards[self.put[0]][n + i]
+                    pos = card.mouse_pos
+                    card.draw((pos[0] - (CARD_SIZE[0] // 2), pos[1] - (CARD_SIZE[1] // 2) + (step * i)))
+                    card.group.move_to_front(card)
+            else:
+                self.put = None
         for i in range(len(self.home)):
             for j in range(len(self.home[i])):
                 self.home[i][j].draw((HOME_COORDS[0] + (CARD_SIZE[0] * i), HOME_COORDS[1]))
+                if self.home[i][j].click:
+                    pos = self.home[i][j].mouse_pos
+                    self.home[i][j].draw((pos[0] - (CARD_SIZE[0] // 2), pos[1] - (CARD_SIZE[1] // 2)))
+                    self.home[i][j].group.move_to_front(self.home[i][j])
 
 
 
@@ -249,6 +271,8 @@ def solitaire_run(screen):
         for i in range(4):
             pygame.draw.rect(screen, (50, 100, 150), (HOME_COORDS[0] + (CARD_SIZE[0] * i), HOME_COORDS[1], *CARD_SIZE),
                              2)
+        if all([len(elem) == 13 for elem in field.home]):
+            return True
         pack.draw()
         field.draw()
         all_sprites.draw(screen)
