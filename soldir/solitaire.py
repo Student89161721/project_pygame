@@ -1,5 +1,5 @@
 import pygame.draw
-from PyQt6.QtWidgets import QMainWindow, QApplication, QLineEdit
+from PyQt5.QtWidgets import QMainWindow, QApplication, QLineEdit
 from soldir.solitaire_ui import Ui_Form
 from PGWigets import *
 from random import randint, shuffle

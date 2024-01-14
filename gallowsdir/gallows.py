@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMainWindow, QApplication
 from gallowsdir.gallows_ui import Ui_Form
 from PGWigets import *
 import random
 from math import pi
 import pygame
+import sqlite3
 
 global theme
 global difficulty
@@ -32,13 +33,16 @@ def gallows_menu():
 
 
 def generate_word(theme, difficulty):
+    con = sqlite3.connect("gallowsdir/database.db")
+    cur = con.cursor()
     word = ''
     if theme == 'Случайная':
         theme = random.choice(['Животные', 'Природа', 'Еда', 'Страны'])
-    d = {'Природа': nature,
-         'Еда': food,
-         'Страны': countries,
-         'Животные': animals}
+    d = {'Природа': [elem[0] for elem in cur.execute("""SELECT word FROM words WHERE theme = 'nature'""").fetchall()],
+         'Еда': [elem[0] for elem in cur.execute("""SELECT word FROM words WHERE theme = 'food'""").fetchall()],
+         'Страны': [elem[0] for elem in cur.execute("""SELECT word FROM words WHERE theme = 'countries'""").fetchall()],
+         'Животные': [elem[0] for elem in cur.execute("""SELECT word FROM words WHERE theme = 'animals'""").fetchall()]}
+    con.close()
     if difficulty == 0:
         word = random.choice(list(filter(lambda x: 3 <= len(x) <= 5, d.get(theme))))
     elif difficulty == 1:

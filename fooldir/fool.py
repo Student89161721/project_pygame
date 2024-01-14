@@ -1,5 +1,5 @@
 import pygame.transform
-from PyQt6.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMainWindow, QApplication
 from fooldir.fool_menu_ui import Ui_Form
 from PGWigets import *
 from random import randint, shuffle

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication
 
 from reg_login import RegistrationWidget, LoginWidget
 from fooldir.fool import fool_run, end_display

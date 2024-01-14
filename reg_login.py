@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QApplication, QLineEdit
+from PyQt5.QtWidgets import QMainWindow, QApplication, QLineEdit
 import sys
 from registration_ui import Ui_MainWindow
 from login_ui import Ui_MainWindow2
