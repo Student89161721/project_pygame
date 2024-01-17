@@ -5,6 +5,7 @@ from fooldir.fool import fool_run, end_display
 from gallowsdir.gallows import gallows_run
 from soldir.solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
+import sqlite3
 import pygame
 
 WIDTH, HEIGHT = 400, 400
@@ -44,7 +45,10 @@ def fool():
 
 def gallows():
     global screen
-    gallows_run(screen)
+    winner = gallows_run(screen)
+    if not winner is None:
+        if not end_display(winner, screen) is None:
+            gallows()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 
@@ -72,9 +76,13 @@ btn_gallows = Button(all_sprites, gallows, (10, 220, 200, 25), 'Виселица
                      shadow_color=(150, 200, 235), line_color=(130, 170, 215))
 btn_solitare = Button(all_sprites, solitaire, (10, 260, 200, 25), 'Косынка', body_color=(170, 220, 255),
                       shadow_color=(150, 200, 235), line_color=(130, 170, 215))
-
-label_1 = Label(all_sprites, 'Тут будет инфа о пользователе', (10, 50), 30, 50)
 label = Label(all_sprites, 'Каталог игр', (10, 150), 25, 50)
+
+con = sqlite3.connect("gallowsdir/database.db")
+cur = con.cursor()
+label_1 = Label(all_sprites, f'Имя пользователя: ', (10, 50), 30, 50)
+label_2 = Label(all_sprites, f'Ваши очки: ', (10, 70), 30, 50)
+con.close()
 
 running = True
 while running:
