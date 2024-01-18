@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QApplication, QLineEdit
+from PyQt5.QtWidgets import QMainWindow, QApplication, QLineEdit, QWidget
 import sys
 from registration_ui import Ui_MainWindow
 from successful_registration import Ui_Form
@@ -7,7 +7,9 @@ from random import choice
 from string import ascii_lowercase, ascii_uppercase, digits
 import sqlite3
 global nickname_
+nickname_ = 'гость'
 global score_
+score_ = 0
 
 
 class PasswordError(Exception):
@@ -168,8 +170,7 @@ class LoginWidget(QMainWindow, Ui_MainWindow2):
             for el in users:
                 if el[1] == nickname:
                     if el[2] == password:
-                        id_ = cursor.execute('''SELECT * FROM users WHERE nickname=?''',
-                                                  (nickname,)).fetchall()
+                        id_ = cursor.execute(f"SELECT * FROM users WHERE nickname='{nickname}'").fetchall()
                         global nickname_
                         nickname_ = id_[0][1]
                         global score_
@@ -190,6 +191,25 @@ class LoginWidget(QMainWindow, Ui_MainWindow2):
 def except_hook(cls, exception, traceback):
     sys.__excepthook__(cls, exception, traceback)
 
+
+def login():
+    global nickname_
+    global score_
+    app = QApplication(sys.argv)
+    log = LoginWidget()
+    log.show()
+    app.exec()
+    return nickname_, score_
+
+
+def register():
+    global nickname_
+    global score_
+    app = QApplication(sys.argv)
+    reg = RegistrationWidget()
+    reg.show()
+    app.exec()
+    return nickname_, score_
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

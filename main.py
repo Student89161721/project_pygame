@@ -1,12 +1,13 @@
 from PyQt5.QtWidgets import QApplication
 
-from reg_login import RegistrationWidget, LoginWidget, nickname_, score_
+from reg_login import nickname_, score_, register, login
 from fooldir.fool import fool_run, end_display
 from gallowsdir.gallows import gallows_run
 from soldir.solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
 import sqlite3
 import pygame
+global nickname_, score_
 
 
 WIDTH, HEIGHT = 400, 400
@@ -14,18 +15,16 @@ WIDTH, HEIGHT = 400, 400
 all_sprites = pygame.sprite.Group()
 
 
-def login():
-    app = QApplication(sys.argv)
-    log = LoginWidget()
-    log.show()
-    app.exec()
+def log():
+    global nickname_
+    global score_
+    nickname_, score_ = login()
 
 
-def register():
-    app = QApplication(sys.argv)
-    reg = RegistrationWidget()
-    reg.show()
-    app.exec()
+def reg():
+    global nickname_
+    global score_
+    nickname_, score_ = register()
 
 
 def solitaire_menu():
@@ -66,9 +65,9 @@ def solitaire():
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-btn_log = Button(all_sprites, login, (10, 10, 150, 25), 'Войти', body_color=(255, 240, 150),
+btn_log = Button(all_sprites, log, (10, 10, 150, 25), 'Войти', body_color=(255, 240, 150),
                  shadow_color=(235, 220, 130), line_color=(225, 200, 120))
-btn_reg = Button(all_sprites, register, (170, 10, 150, 25), 'Зарегистрироваться', body_color=(255, 240, 150),
+btn_reg = Button(all_sprites, reg, (170, 10, 150, 25), 'Зарегистрироваться', body_color=(255, 240, 150),
                  shadow_color=(235, 220, 130), line_color=(225, 200, 120))
 
 btn_fool = Button(all_sprites, fool, (10, 180, 200, 25), 'Дурак', body_color=(170, 220, 255),
@@ -91,6 +90,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         all_sprites.update(event)
+    if label_1.text != f'Имя пользователя: {nickname_}':
+        label_1.set_text(f'Имя пользователя: {nickname_}')
+    if label_2.text != f'Ваши очки: {score_}':
+        label_2.set_text(f'Ваши очки: {score_}')
     screen.fill((255, 255, 255))
     all_sprites.draw(screen)
     pygame.display.flip()

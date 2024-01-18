@@ -58,35 +58,23 @@ class Button(pygame.sprite.Sprite):
 class Label(pygame.sprite.Sprite):
     def __init__(self, group, text, coords, size=20, text_color=(0, 0, 0)):
         super().__init__(group)
+        self.text = text
+        self.text_color = text_color
+        self.size = size
+        self.coords = coords
         font = pygame.font.Font(None, size)
         text = font.render(text, True, text_color)
         self.image = pygame.Surface((text.get_width(), text.get_height()), pygame.SRCALPHA, 32)
         self.rect = pygame.Rect(*coords, text.get_width(), text.get_height())
         self.image.blit(text, (0, 0))
 
-
-# class LineEdit(pygame.sprite.Sprite):
-#     def __init__(self, group, word, topleft, size, max_length, line_color=(0, 0, 0), text_color=(0, 0, 0)):
-#         super().__init__(group)
-#         self.word, self.topleft, self.size, self.line_color, self.text_color = word, topleft, size, line_color, text_color
-#         self.max_length = max_length
-#         print(self.word)
-#         self.text = ''
-#         self.font = pygame.font.SysFont('', size)
-#         self.image = self.font.render(self.text, True, self.text_color)
-#         self.rect = self.image.get_rect()
-#         self.rect.topleft = topleft
-#         self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
-#
-#     def update(self, event):
-#         if event.type == pygame.KEYDOWN:
-#             self.image = self.font.render(self.text, True, self.text_color)
-#             self.rect.size = self.image.get_size()
-#             self.cursor.topleft = self.rect.topright
-
-
-
-
+    def set_text(self, text):
+        self.text = text
+        font = pygame.font.Font(None, self.size)
+        text = font.render(text, True, self.text_color)
+        self.image = pygame.Surface((text.get_width(), text.get_height()), pygame.SRCALPHA, 32)
+        self.rect = pygame.Rect(*self.coords, text.get_width(), text.get_height())
+        self.image.blit(text, (0, 0))
 
 
 def load_image(name, colorkey=None):
