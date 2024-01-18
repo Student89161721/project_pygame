@@ -1,12 +1,13 @@
 from PyQt5.QtWidgets import QApplication
 
-from reg_login import RegistrationWidget, LoginWidget
+from reg_login import RegistrationWidget, LoginWidget, nickname_, score_
 from fooldir.fool import fool_run, end_display
 from gallowsdir.gallows import gallows_run
 from soldir.solitaire import SolitaireMenu, solitaire_run
 from PGWigets import *
 import sqlite3
 import pygame
+
 
 WIDTH, HEIGHT = 400, 400
 
@@ -80,8 +81,8 @@ label = Label(all_sprites, 'Каталог игр', (10, 150), 25, 50)
 
 con = sqlite3.connect("gallowsdir/database.db")
 cur = con.cursor()
-label_1 = Label(all_sprites, f'Имя пользователя: ', (10, 50), 30, 50)
-label_2 = Label(all_sprites, f'Ваши очки: ', (10, 70), 30, 50)
+label_1 = Label(all_sprites, f'Имя пользователя: {nickname_}', (10, 50), 30, 50)
+label_2 = Label(all_sprites, f'Ваши очки: {score_}', (10, 70), 30, 50)
 con.close()
 
 running = True

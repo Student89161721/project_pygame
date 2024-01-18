@@ -99,7 +99,7 @@ def gallows_run(screen):
                       (12, 120), 30, 'black')
     # char_lineedit = LineEdit(all_sprites, word, (350, 80), 60, 1)
     L = []
-
+    L2 = []
     text = ''
     font = pygame.font.SysFont('', 60)
     image = font.render(text, True, 'black')
@@ -114,6 +114,7 @@ def gallows_run(screen):
     run = True
     global count
     count = 0
+    count_2 = 0
 
     while run:
         screen.fill(pygame.Color('white'))
@@ -131,9 +132,20 @@ def gallows_run(screen):
                             text = event.unicode
                 if event.key == 13:  # Если нажат enter
                     if text:
-                        if text in word:
-                            for elem in symbol_coords(text, word):
-                                Label(all_sprites, text, (elem, 430), 250, 'black')
+                        if text not in L2:
+                            count_2 += word.count(text)
+                            L2.append(text)
+                            if text in word:
+                                if difficulty == 0:
+                                    size, y = 250, 430
+                                elif difficulty == 1:
+                                    size, y = 200, 460
+                                else:
+                                    size, y = 150, 490
+                                for elem in symbol_coords(text, word, size):
+                                    Label(all_sprites, text, (elem, y), size, 'black')
+                                if count_2 == len(word):
+                                    return True
 
                         else:
                             if text not in L:
@@ -198,20 +210,16 @@ def draw_lines(word, screen):
                          (x1 + (length * (i + 1)), y), 10)
 
 
-def symbol_coords(symbol, word):
+def symbol_coords(symbol, word, size):
     indexes = [i for i, el in enumerate(word) if el == symbol]
-
-    print(indexes)
-
     x1, x2 = 170, 770 + (10 * len(word))
     length = ((x2 - x1) - (10 * (len(word) - 1))) // len(word)
-    print(length)
-    print(word)
-    font = pygame.font.SysFont('', 250)
+    font = pygame.font.SysFont('', size)
     image = font.render(symbol, True, 'black')
     rect = image.get_rect()
     rect.topleft = (170, 430)
-    print(rect.topleft)
-    print(rect.topright)
-    return [x1 + (el * length) + ((length - 100) // 2) for el in indexes]
+    return [x1 + (el * length) + 10 + ((length - (rect.topright[0] - rect.topleft[0])) // 2) for el in indexes]
+
+
+
 
